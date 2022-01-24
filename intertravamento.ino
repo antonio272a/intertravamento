@@ -2,12 +2,12 @@
 #define RELAY_IN_2 3
 #define RELAY_IN_3 4
 #define RELAY_IN_4 5
-#define RELAY_OUT_1 6
-#define RELAY_OUT_2 7
-#define RELAY_OUT_3 8
-#define RELAY_OUT_4 9
-#define INPUT_TYPE_SWITCH 10
-#define CONTROL_INPUT 11
+#define RELAY_OUT_1 A0
+#define RELAY_OUT_2 A1
+#define RELAY_OUT_3 A2
+#define RELAY_OUT_4 A3
+#define INPUT_TYPE_SWITCH 6
+#define CONTROL_INPUT 7
 #define NUMBER_OF_INPUTS 4
 
 #define RELAY_ACTIVE_TIME 500
@@ -18,6 +18,8 @@ int inputArray[NUMBER_OF_INPUTS][2] = {
 };
 
 bool activated = false;
+int activeRelayIn;
+int activeRelayOut;
 
 void setUpPins() {
   pinMode(RELAY_IN_1, INPUT_PULLUP);
@@ -55,6 +57,8 @@ void checkInputs() {
     if (digitalRead(inputArray[i][0]) == LOW) {
       triggerRelay(inputArray[i][1]);
       activated = true;
+      activeRelayIn = inputArray[i][0];
+      activeRelayOut = inputArray[i][1];
       break;
     }
   }
@@ -67,12 +71,24 @@ void checkActivated() {
   }
 }
 
+void checkActiveRelay() {
+  if (digitalRead(activeRelayIn) == LOW) {
+    triggerRelay(activeRelayOut);
+  }
+}
+
 void loop() {
-  bool isOpen = digitalRead(CONTROL_INPUT) == LOW;
+  int type = digitalRead(INPUT_TYPE_SWITCH);
+  bool isOpen = digitalRead(CONTROL_INPUT) == type;
   if (!isOpen) {
     checkInputs();
+    checkActivated();
   }
 
+  if (isOpen) {
+    checkActiveRelay();  
+  }
+  
   checkActivated();
 
 }
